@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="StockAcademy"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<meta name="description" content="Learn everything about stocks — from basics to strategy."/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<title>Stock Market Academy</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0f0f5;
+    --muted: #888899;
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.12);
+    --red: #f43f5e;
+    --red-dim: rgba(244,63,94,0.12);
+    --gold: #f59e0b;
+    --blue: #3b82f6;
+    --blue-dim: rgba(59,130,246,0.12);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* TOP HEADER */
+  .header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 12px;
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  }
+  .header-top { display: flex; align-items: center; gap: 12px; }
+  .app-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, #0f2010, #1a3a20);
+    border: 1px solid rgba(34,197,94,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .app-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); }
+  .app-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding-bottom: var(--safe-bottom);
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    padding: 10px 4px 8px; cursor: pointer; transition: all 0.2s;
+    border: none; background: none; color: var(--muted); font-family: 'DM Sans', sans-serif;
+  }
+  .nav-item.active { color: var(--green); }
+  .nav-icon { font-size: 22px; margin-bottom: 3px; }
+  .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.3px; }
+
+  /* MAIN CONTENT */
+  .main {
+    padding: 20px 16px;
+    padding-bottom: calc(80px + var(--safe-bottom));
+  }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-sm {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+
+  /* TYPOGRAPHY */
+  .section-heading {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px; color: var(--text);
+    margin-bottom: 4px; line-height: 1.2;
+  }
+  .section-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+  h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+
+  /* TOPIC GRID */
+  .topic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .topic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-user-select: none;
+  }
+  .topic-card:active { transform: scale(0.97); }
+  .topic-card.selected { border-color: var(--green); background: var(--green-dim); }
+  .topic-emoji { font-size: 24px; margin-bottom: 8px; }
+  .topic-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+  .topic-hint { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+  /* AI OUTPUT */
+  .ai-output {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+    margin-top: 4px;
+  }
+  .ai-output.loading { color: var(--muted); font-style: italic; }
+  .ai-loading-bar {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    border-radius: 2px;
+    animation: shimmer 1.4s infinite;
+    margin-bottom: 12px;
+  }
+  @keyframes shimmer { 0%{background-position:-200px} 100%{background-position:200px} }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 11px 20px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface2);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+    color: var(--text); cursor: pointer; transition: all 0.2s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-green {
+    background: var(--green-dim);
+    border-color: rgba(34,197,94,0.3);
+    color: var(--green);
+  }
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* QUIZ */
+  .quiz-q { font-size: 16px; font-weight: 500; line-height: 1.5; margin-bottom: 16px; color: var(--text); }
+  .quiz-opt {
+    width: 100%; text-align: left;
+    padding: 13px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; color: var(--text);
+    cursor: pointer; margin-bottom: 8px;
+    transition: all 0.2s;
+  }
+  .quiz-opt:active { transform: scale(0.99); }
+  .quiz-opt.correct { background: var(--green-dim); border-color: rgba(34,197,94,0.5); color: var(--green); }
+  .quiz-opt.wrong { background: var(--red-dim); border-color: rgba(244,63,94,0.4); color: var(--red); }
+  .quiz-feedback {
+    margin-top: 12px; padding: 14px;
+    background: var(--surface2); border-radius: var(--radius-sm);
+    font-size: 13px; line-height: 1.6; color: var(--muted);
+    border-left: 3px solid var(--green);
+  }
+  .score-pill {
+    display: inline-block; padding: 4px 12px;
+    border-radius: 20px; font-size: 12px; font-weight: 600;
+    background: var(--green-dim); color: var(--green);
+    margin-bottom: 16px;
+  }
+
+  /* SIMULATOR */
+  .stat-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 16px; }
+  .stat-box { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 10px; text-align: center; }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .stat-val { font-size: 17px; font-weight: 600; color: var(--text); }
+  .stat-val.up { color: var(--green); }
+  .stat-val.down { color: var(--red); }
+
+  select, input[type=text] {
+    width: 100%; padding: 11px 14px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    margin-bottom: 10px; -webkit-appearance: none;
+  }
+  input[type=range] {
+    width: 100%; accent-color: var(--green); margin: 8px 0;
+  }
+  .row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .row-label { font-size: 13px; color: var(--muted); min-width: 70px; }
+  .row-val { font-size: 14px; font-weight: 600; color: var(--text); }
+
+  .holding-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .holding-row:last-child { border-bottom: none; }
+  .holding-ticker { font-size: 15px; font-weight: 600; color: var(--text); }
+  .holding-shares { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .holding-val { font-size: 15px; font-weight: 600; color: var(--green); }
+
+  /* GLOSSARY */
+  .search-input {
+    width: 100%; padding: 12px 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 15px;
+    margin-bottom: 16px; -webkit-appearance: none;
+  }
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus { outline: none; border-color: rgba(34,197,94,0.4); }
+  .gloss-item { padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .gloss-item:last-child { border-bottom: none; }
+  .gloss-term { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .gloss-def { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ASK */
+  .quick-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .quick-btn {
+    padding: 8px 14px; border-radius: 20px;
+    border: 1px solid var(--border); background: var(--surface2);
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    color: var(--muted); cursor: pointer; transition: all 0.2s;
+  }
+  .quick-btn:active { background: var(--green-dim); border-color: rgba(34,197,94,0.3); color: var(--green); }
+  .ask-wrap { display: flex; gap: 8px; margin-bottom: 16px; }
+  .ask-input {
+    flex: 1; padding: 12px 16px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 15px;
+    -webkit-appearance: none;
+  }
+  .ask-input:focus { outline: none; border-color: rgba(34,197,94,0.4); }
+  .ask-input::placeholder { color: var(--muted); }
+  .send-btn {
+    padding: 12px 16px; border-radius: var(--radius-sm);
+    background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3);
+    color: var(--green); font-size: 20px; cursor: pointer;
+    transition: all 0.2s; display: flex; align-items: center;
+  }
+  .send-btn:active { transform: scale(0.95); }
+
+  /* BADGE */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-gold { background: rgba(245,158,11,0.12); color: var(--gold); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+
+  /* INSTALL BANNER */
+  .install-banner {
+    background: var(--green-dim);
+    border: 1px solid rgba(34,197,94,0.25);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .install-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
+  .install-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .install-title { font-size: 14px; font-weight: 600; color: var(--green); margin-bottom: 3px; }
+  .install-close {
+    margin-left: auto; background: none; border: none;
+    color: var(--muted); font-size: 18px; cursor: pointer; flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="app-icon">📈</div>
+    <div>
+      <div class="app-title">Stock Academy</div>
+      <div class="app-sub">Learn · Quiz · Invest</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- LEARN -->
+  <div id="sec-learn" class="section active">
+    <div id="install-banner" class="install-banner">
+      <div class="install-icon">📲</div>
+      <div class="install-text">
+        <div class="install-title">Install as an app</div>
+        Tap the <strong>Share</strong> button in Safari → <strong>Add to Home Screen</strong> to install this like a real app!
+      </div>
+      <button class="install-close" onclick="document.getElementById('install-banner').style.display='none'">✕</button>
+    </div>
+    <p class="section-heading">What do you want to learn?</p>
+    <p class="section-sub">Pick a topic and get an AI-powered explanation.</p>
+    <div class="topic-grid">
+      <div class="topic-card" onclick="learnTopic(this,'What is a stock? Explain simply for a beginner — ownership, shares, why companies issue stock, and what it means to be a shareholder.')">
+        <div class="topic-emoji">📈</div>
+        <div class="topic-name">What is a stock?</div>
+        <div class="topic-hint">Shares, ownership & going public</div>
+      </div>
+      <div class="topic-card" onclick="learnTopic(this,'How does the stock market work? Explain exchanges like NYSE and NASDAQ, how buyers and sellers meet, what determines price, and market hours.')">
+        <div class="topic-emoji">🏛️</div>
+        <div class="topic-name">How markets work</div>
+        <div class="topic-hint">Exchanges, buyers & price discovery</div>
+      </div>
+      <div class="topic-card" onclick="learnTopic(this,'Explain stock metrics a beginner needs: P/E ratio, EPS, dividend yield, market cap, 52-week high/low. Use simple examples.')">
+        <div class="topic-emoji">📊</div>
+        <div class="topic-name">Reading stock data</div>
+        <div class="topic-hint">P/E, EPS, market cap, dividends</div>
+      </div>
+      <div class="topic-card" onclick="learnTopic(this,'Explain investment strategies: buy and hold, value investing, growth investing, dividend investing, and index funds. Compare the pros and cons of each.')">
+        <div class="topic-emoji">🧠</div>
+        <div class="topic-name">Strategies</div>
+        <div class="topic-hint">Value, growth, index funds</div>
+      </div>
+      <div class="topic-card" onclick="learnTopic(this,'Explain risk management in stocks: diversification, stop-losses, position sizing, beta, volatility, and how to protect a portfolio from big losses.')">
+        <div class="topic-emoji">🛡️</div>
+        <div class="topic-name">Managing risk</div>
+        <div class="topic-hint">Diversification & stop-losses</div>
+      </div>
+      <div class="topic-card" onclick="learnTopic(this,'Explain how to analyze stocks: fundamental analysis (income statements, balance sheets, cash flow) vs technical analysis (charts, moving averages, RSI). When to use each.')">
+        <div class="topic-emoji">🔍</div>
+        <div class="topic-name">Analyzing stocks</div>
+        <div class="topic-hint">Fundamental vs technical</div>
+      </div>
+    </div>
+    <div id="learn-out" style="display:none;"></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="sec-quiz" class="section">
+    <p class="section-heading">Test yourself</p>
+    <p class="section-sub">AI-generated questions every time. No two quizzes are the same.</p>
+    <div id="score-area" style="display:none;">
+      <span class="score-pill" id="score-pill">Score: 0/0</span>
+    </div>
+    <div id="quiz-area">
+      <button class="btn btn-green btn-full" onclick="loadQuiz()">Generate question ↗</button>
+    </div>
+  </div>
+
+  <!-- SIMULATOR -->
+  <div id="sec-sim" class="section">
+    <p class="section-heading">Paper trading</p>
+    <p class="section-sub">Practice with $10,000 in virtual money — no real money needed.</p>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-label">Cash</div><div class="stat-val" id="cash-v">$10,000</div></div>
+      <div class="stat-box"><div class="stat-label">Portfolio</div><div class="stat-val" id="port-v">$0</div></div>
+      <div class="stat-box"><div class="stat-label">Gain/Loss</div><div class="stat-val" id="gain-v">$0</div></div>
+    </div>
+    <div class="card">
+      <h3>Buy a stock</h3>
+      <select id="stock-sel" onchange="updateCost()">
+        <option value="AAPL|182">AAPL — Apple · $182</option>
+        <option value="MSFT|415">MSFT — Microsoft · $415</option>
+        <option value="NVDA|875">NVDA — Nvidia · $875</option>
+        <option value="TSLA|248">TSLA — Tesla · $248</option>
+        <option value="AMZN|185">AMZN — Amazon · $185</option>
+        <option value="GOOGL|175">GOOGL — Alphabet · $175</option>
+        <option value="SPY|512">SPY — S&P 500 ETF · $512</option>
+        <option value="QQQ|440">QQQ — Nasdaq ETF · $440</option>
+      </select>
+      <div class="row">
+        <span class="row-label">Shares</span>
+        <input type="range" min="1" max="20" value="1" id="shares-r" oninput="updateCost()" style="flex:1;"/>
+        <span class="row-val" id="shares-v">1</span>
+      </div>
+      <div class="row" style="margin-bottom:14px;">
+        <span class="row-label">Total cost</span>
+        <span class="row-val" id="cost-v" style="color:var(--gold);">$182</span>
+      </div>
+      <button class="btn btn-green btn-full" onclick="buyStock()">Buy shares ↗</button>
+    </div>
+    <div id="holdings-card" style="display:none;" class="card">
+      <h3 style="margin-bottom:12px;">Your holdings</h3>
+      <div id="holdings-list"></div>
+    </div>
+    <div id="sim-advice" style="display:none;" class="ai-output" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- GLOSSARY -->
+  <div id="sec-glossary" class="section">
+    <p class="section-heading">Glossary</p>
+    <p class="section-sub">Every term you need to know as an investor.</p>
+    <input class="search-input" placeholder="🔍  Search terms..." oninput="filterGloss(this.value)"/>
+    <div id="gloss-list"></div>
+  </div>
+
+  <!-- ASK -->
+  <div id="sec-ask" class="section">
+    <p class="section-heading">Ask the tutor</p>
+    <p class="section-sub">Any question about stocks — answered clearly.</p>
+    <div class="quick-btns">
+      <button class="quick-btn" onclick="quickAsk('What is the difference between a stock and a bond?')">Stock vs bond</button>
+      <button class="quick-btn" onclick="quickAsk('How do dividends work?')">Dividends</button>
+      <button class="quick-btn" onclick="quickAsk('What is dollar-cost averaging?')">Dollar-cost avg</button>
+      <button class="quick-btn" onclick="quickAsk('What causes a stock market crash?')">Market crashes</button>
+      <button class="quick-btn" onclick="quickAsk('How do I start investing with $100?')">Start with $100</button>
+      <button class="quick-btn" onclick="quickAsk('What is a Roth IRA?')">Roth IRA</button>
+    </div>
+    <div class="ask-wrap">
+      <input class="ask-input" id="ask-q" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')doAsk()"/>
+      <button class="send-btn" onclick="doAsk()">↗</button>
+    </div>
+    <div id="ask-out" style="display:none;"></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="nav('learn',this)">
+    <span class="nav-icon">📚</span><span class="nav-label">Learn</span>
+  </button>
+  <button class="nav-item" onclick="nav('quiz',this)">
+    <span class="nav-icon">🎯</span><span class="nav-label">Quiz</span>
+  </button>
+  <button class="nav-item" onclick="nav('sim',this)">
+    <span class="nav-icon">💼</span><span class="nav-label">Simulate</span>
+  </button>
+  <button class="nav-item" onclick="nav('glossary',this)">
+    <span class="nav-icon">📖</span><span class="nav-label">Glossary</span>
+  </button>
+  <button class="nav-item" onclick="nav('ask',this)">
+    <span class="nav-icon">🤖</span><span class="nav-label">Ask AI</span>
+  </button>
+</nav>
+
+<script>
+// ── NAV ──
+function nav(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── CLAUDE API ──
+async function claude(prompt, system) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: system || 'You are a friendly stock market tutor. Be clear and concise for beginners. Use short paragraphs. No markdown headers or asterisks. Keep responses under 200 words. Be encouraging.',
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const d = await res.json();
+  return d.content.map(c => c.text || '').join('');
+}
+
+// ── LEARN ──
+async function learnTopic(el, prompt) {
+  document.querySelectorAll('.topic-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const out = document.getElementById('learn-out');
+  out.style.display = 'block';
+  out.innerHTML = '<div class="ai-loading-bar"></div><div class="ai-output loading">Loading explanation...</div>';
+  try {
+    const text = await claude(prompt);
+    out.innerHTML = `<div class="ai-output">${text}</div>`;
+  } catch {
+    out.innerHTML = '<div class="ai-output loading">Failed to load. Check your connection and try again.</div>';
+  }
+}
+
+// ── QUIZ ──
+let quizScore = 0, quizTotal = 0;
+
+async function loadQuiz() {
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = '<div class="ai-loading-bar"></div><div class="ai-output loading">Generating question...</div>';
+  const prompt = `Generate a stock market quiz question for a beginner. Return ONLY raw JSON (no markdown, no backticks): {"question":"...","options":["A. ...","B. ...","C. ...","D. ..."],"correct":0,"explanation":"..."}. The correct field is the 0-based index. Vary topics: basics, P/E ratio, dividends, bull/bear, ETFs, diversification, IPO, market cap.`;
+  try {
+    const raw = await claude(prompt, 'Return only valid raw JSON. No markdown. No backticks. No preamble.');
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const q = JSON.parse(clean);
+    area.innerHTML = `
+      <div class="quiz-q">${q.question}</div>
+      ${q.options.map((o,i)=>`<button class="quiz-opt" id="qo${i}" onclick="checkQ(${i},${q.correct},'${encodeURIComponent(q.explanation)}')">${o}</button>`).join('')}
+      <div id="qfb" style="display:none;"></div>
+      <div style="margin-top:14px;">
+        <button class="btn btn-green btn-full" onclick="loadQuiz()">Next question ↗</button>
+      </div>`;
+  } catch(e) {
+    area.innerHTML = '<div class="ai-output loading">Failed to load. Please try again.</div><br><button class="btn btn-full" onclick="loadQuiz()">Retry ↗</button>';
+  }
+}
+
+function checkQ(picked, correct, expEnc) {
+  document.querySelectorAll('.quiz-opt').forEach(b => b.onclick = null);
+  document.getElementById('qo'+correct).classList.add('correct');
+  if (picked !== correct) document.getElementById('qo'+picked).classList.add('wrong');
+  quizTotal++;
+  if (picked === correct) quizScore++;
+  const pill = document.getElementById('score-pill');
+  document.getElementById('score-area').style.display = 'block';
+  pill.textContent = `Score: ${quizScore}/${quizTotal}`;
+  const exp = decodeURIComponent(expEnc);
+  document.getElementById('qfb').style.display = 'block';
+  document.getElementById('qfb').innerHTML = `<div class="quiz-feedback">${picked===correct?'✅ Correct! ':'❌ Not quite — '}${exp}</div>`;
+}
+
+// ── SIMULATOR ──
+let cash = 10000, holdings = {}, prices = {};
+
+function updateCost() {
+  const [t,p] = document.getElementById('stock-sel').value.split('|');
+  const s = +document.getElementById('shares-r').value;
+  document.getElementById('shares-v').textContent = s;
+  document.getElementById('cost-v').textContent = '$' + (s*+p).toLocaleString();
+}
+document.getElementById('stock-sel').addEventListener('change', updateCost);
+
+function buyStock() {
+  const [ticker, ps] = document.getElementById('stock-sel').value.split('|');
+  const price = +ps, shares = +document.getElementById('shares-r').value;
+  const cost = shares * price;
+  if (cost > cash) { alert('Not enough cash!'); return; }
+  cash -= cost;
+  prices[ticker] = price;
+  if (!holdings[ticker]) holdings[ticker] = { shares: 0 };
+  holdings[ticker].shares += shares;
+  refreshPortfolio();
+  getSimAdvice();
+}
+
+function refreshPortfolio() {
+  let portVal = Object.keys(holdings).reduce((s,t) => s + holdings[t].shares * prices[t], 0);
+  const gain = portVal + cash - 10000;
+  document.getElementById('cash-v').textContent = '$' + Math.round(cash).toLocaleString();
+  document.getElementById('port-v').textContent = '$' + Math.round(portVal).toLocaleString();
+  const gEl = document.getElementById('gain-v');
+  gEl.textContent = (gain>=0?'+':'') + '$' + Math.round(Math.abs(gain)).toLocaleString();
+  gEl.className = 'stat-val ' + (gain>=0?'up':'down');
+  const keys = Object.keys(holdings);
+  if (!keys.length) { document.getElementById('holdings-card').style.display='none'; return; }
+  document.getElementById('holdings-card').style.display = 'block';
+  document.getElementById('holdings-list').innerHTML = keys.map(t =>
+    `<div class="holding-row">
+      <div><div class="holding-ticker">${t}</div><div class="holding-shares">${holdings[t].shares} shares @ $${prices[t]}</div></div>
+      <div class="holding-val">$${Math.round(holdings[t].shares*prices[t]).toLocaleString()}</div>
+    </div>`).join('');
+}
+
+async function getSimAdvice() {
+  const adv = document.getElementById('sim-advice');
+  adv.style.display = 'block';
+  adv.className = 'ai-output loading';
+  adv.textContent = 'Analyzing your portfolio...';
+  const summary = Object.keys(holdings).map(t=>`${holdings[t].shares} shares of ${t}`).join(', ');
+  try {
+    const text = await claude(`A beginner investor holds: ${summary}. Cash left: $${Math.round(cash)}. Give 2-3 sentences of friendly feedback on diversification, risk level, and one tip. Keep it simple and encouraging.`);
+    adv.className = 'ai-output';
+    adv.textContent = text;
+  } catch { adv.style.display = 'none'; }
+}
+
+// ── GLOSSARY ──
+const GLOSSARY = [
+  {term:'Stock (Share)',def:'A unit of ownership in a company. Owning shares gives you a stake in its profits and assets.'},
+  {term:'Bull market',def:'A period when stock prices are rising or expected to rise — generally a 20%+ gain from a recent low.'},
+  {term:'Bear market',def:'A prolonged decline in prices — typically defined as a 20%+ drop from recent highs.'},
+  {term:'Dividend',def:'A portion of a company\'s earnings paid to shareholders, usually quarterly. Not all stocks pay dividends.'},
+  {term:'P/E ratio',def:'Price-to-Earnings ratio. Compares a stock\'s price to its earnings per share. High P/E can signal high growth expectations.'},
+  {term:'Market cap',def:'Total value of all a company\'s shares. Small-cap (<$2B), mid-cap ($2–10B), large-cap (>$10B).'},
+  {term:'Index fund',def:'A fund that tracks an index like the S&P 500. Low-cost and diversified — great for passive investors.'},
+  {term:'ETF',def:'Exchange-Traded Fund. Like an index fund but trades on an exchange throughout the day like a stock.'},
+  {term:'Volatility',def:'How much a stock\'s price fluctuates. High volatility means bigger price swings — more risk and potential reward.'},
+  {term:'Diversification',def:'Spreading investments across many assets to reduce risk. "Don\'t put all your eggs in one basket."'},
+  {term:'Liquidity',def:'How easily an asset can be bought or sold without affecting its price. Stocks on major exchanges are very liquid.'},
+  {term:'Short selling',def:'Borrowing shares to sell, hoping to buy them back cheaper later. Very high risk strategy.'},
+  {term:'IPO',def:'Initial Public Offering. When a private company first sells shares to the public on a stock exchange.'},
+  {term:'52-week high/low',def:'The highest and lowest price a stock has traded at over the past year — a key reference point for investors.'},
+  {term:'Stop-loss',def:'An order to automatically sell a stock if it drops to a set price, limiting your potential loss.'},
+  {term:'EPS',def:'Earnings Per Share. Net profit divided by total shares. Higher EPS generally indicates a more profitable company.'},
+  {term:'Blue-chip stock',def:'Shares of large, stable, well-established companies with a long track record — like Apple or Coca-Cola.'},
+  {term:'Moving average',def:'Average price over a set period (e.g. 50-day MA). Used in technical analysis to identify trends.'},
+  {term:'Dollar-cost averaging',def:'Investing a fixed amount regularly regardless of price. Reduces the risk of buying at a bad time.'},
+  {term:'Portfolio',def:'The full collection of all your investments — stocks, bonds, ETFs, cash, and other assets.'},
+  {term:'Broker',def:'A platform or firm that executes buy/sell orders for you (e.g. Fidelity, Schwab, Robinhood).'},
+  {term:'Compound interest',def:'Earning returns on your returns. Over time it causes wealth to grow exponentially — the most powerful force in investing.'},
+];
+
+function renderGloss(items) {
+  document.getElementById('gloss-list').innerHTML =
+    `<div class="card">${items.map(i=>`<div class="gloss-item"><div class="gloss-term">${i.term}</div><div class="gloss-def">${i.def}</div></div>`).join('')}</div>`;
+}
+renderGloss(GLOSSARY);
+function filterGloss(q) {
+  const f = q.toLowerCase();
+  renderGloss(GLOSSARY.filter(i => i.term.toLowerCase().includes(f) || i.def.toLowerCase().includes(f)));
+}
+
+// ── ASK AI ──
+async function doAsk() {
+  const q = document.getElementById('ask-q').value.trim();
+  if (!q) return;
+  const out = document.getElementById('ask-out');
+  out.style.display = 'block';
+  out.innerHTML = '<div class="ai-loading-bar"></div><div class="ai-output loading">Thinking...</div>';
+  try {
+    const text = await claude(q);
+    out.innerHTML = `<div class="ai-output">${text}</div>`;
+  } catch {
+    out.innerHTML = '<div class="ai-output loading">Failed. Please try again.</div>';
+  }
+}
+
+function quickAsk(q) {
+  document.getElementById('ask-q').value = q;
+  document.querySelectorAll('.nav-item')[4].click();
+  doAsk();
+}
+
+// ── SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
