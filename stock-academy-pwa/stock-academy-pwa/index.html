@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="StockAcademy"/>
+<meta name="apple-mobile-web-app-title" content="Stock Academy"/>
 <meta name="theme-color" content="#0a0a0f"/>
-<title>Stock Market Academy</title>
+<meta name="description" content="Learn everything about stocks — from basics to strategy."/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<title>Stock Academy</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap');
   :root {
@@ -183,7 +186,7 @@
   <div id="sec-quiz" class="section">
     <p class="section-heading">Test yourself</p>
     <p class="section-sub">30+ questions, randomly shuffled every time.</p>
-    <div class="quiz-stats">
+    <div class="quiz-stats" id="quiz-stats-row" style="display:none">
       <div class="quiz-stat"><div class="quiz-stat-val up" id="qs-correct">0</div><div class="quiz-stat-label">Correct</div></div>
       <div class="quiz-stat"><div class="quiz-stat-val" id="qs-total">0</div><div class="quiz-stat-label">Total</div></div>
       <div class="quiz-stat"><div class="quiz-stat-val" id="qs-pct">—</div><div class="quiz-stat-label">Accuracy</div></div>
@@ -210,16 +213,16 @@
       <div id="buy-panel">
         <div class="price-live"><div class="price-dot"></div><span class="price-tag">Simulated prices</span></div>
         <select id="stock-sel" onchange="updateCost()">
-          <option value="AAPL|189">AAPL — Apple · $189</option>
-          <option value="MSFT|420">MSFT — Microsoft · $420</option>
-          <option value="NVDA|950">NVDA — Nvidia · $950</option>
-          <option value="TSLA|175">TSLA — Tesla · $175</option>
-          <option value="AMZN|195">AMZN — Amazon · $195</option>
-          <option value="GOOGL|170">GOOGL — Alphabet · $170</option>
-          <option value="SPY|535">SPY — S&P 500 ETF · $535</option>
-          <option value="QQQ|455">QQQ — Nasdaq ETF · $455</option>
-          <option value="META|520">META — Meta · $520</option>
-          <option value="BRK|430">BRK.B — Berkshire · $430</option>
+          <option value="AAPL|211">AAPL — Apple · $211</option>
+          <option value="MSFT|449">MSFT — Microsoft · $449</option>
+          <option value="NVDA|118">NVDA — Nvidia · $118</option>
+          <option value="TSLA|278">TSLA — Tesla · $278</option>
+          <option value="AMZN|204">AMZN — Amazon · $204</option>
+          <option value="GOOGL|164">GOOGL — Alphabet · $164</option>
+          <option value="SPY|567">SPY — S&P 500 ETF · $567</option>
+          <option value="QQQ|480">QQQ — Nasdaq ETF · $480</option>
+          <option value="META|594">META — Meta · $594</option>
+          <option value="BRK|526">BRK.B — Berkshire · $526</option>
         </select>
         <div class="row">
           <span class="row-label">Shares</span>
@@ -254,7 +257,7 @@
   <!-- ASK -->
   <div id="sec-ask" class="section">
     <p class="section-heading">Ask the tutor</p>
-    <p class="section-sub">Instant answers from our built-in knowledge base.</p>
+    <p class="section-sub">Ask anything about stocks — instant answers from our knowledge base.</p>
     <div class="quick-btns">
       <button class="quick-btn" onclick="quickAsk('stock vs bond')">Stock vs bond</button>
       <button class="quick-btn" onclick="quickAsk('dividends')">Dividends</button>
@@ -463,6 +466,7 @@ function syncQuizUI() {
   document.getElementById('qs-total').textContent = quizTotal;
   document.getElementById('qs-pct').textContent = quizTotal > 0 ? Math.round(quizScore/quizTotal*100)+'%' : '—';
   document.getElementById('qs-streak').textContent = quizStreak;
+  if (quizTotal > 0) document.getElementById('quiz-stats-row').style.display = 'flex';
 }
 syncQuizUI();
 
@@ -471,6 +475,7 @@ function resetQuiz() {
   quizScore = quizTotal = quizStreak = 0;
   save('quiz_correct',0); save('quiz_total',0); save('quiz_cur_streak',0);
   syncQuizUI();
+  document.getElementById('quiz-stats-row').style.display = 'none';
   document.getElementById('quiz-area').innerHTML = '<button class="btn btn-green btn-full" onclick="loadQuiz()">Start quiz ↗</button>';
   showToast('Quiz stats reset ✓');
 }
@@ -512,8 +517,38 @@ function checkQ(picked, correct, expEnc) {
 let cash = load('sim_cash', 10000);
 let holdings = load('sim_holdings', {});
 let buyPrices = load('sim_buy_prices', {});
-const SIM_PRICES = {AAPL:189,MSFT:420,NVDA:950,TSLA:175,AMZN:195,GOOGL:170,SPY:535,QQQ:455,META:520,BRK:430};
-Object.keys(SIM_PRICES).forEach(t => { SIM_PRICES[t] = Math.round(SIM_PRICES[t] * (1 + (Math.random()*0.06-0.03))); });
+
+// Fallback prices in case fetch fails
+const FALLBACK_PRICES = {AAPL:211,MSFT:449,NVDA:118,TSLA:278,AMZN:204,GOOGL:164,SPY:567,QQQ:480,META:594,BRK:526};
+const SIM_PRICES = {...FALLBACK_PRICES};
+const TICKERS = ['AAPL','MSFT','NVDA','TSLA','AMZN','GOOGL','SPY','QQQ','META','BRK.B'];
+const TICKER_LABELS = {AAPL:'Apple',MSFT:'Microsoft',NVDA:'Nvidia',TSLA:'Tesla',AMZN:'Amazon',GOOGL:'Alphabet',SPY:'S&P 500 ETF',QQQ:'Nasdaq ETF',META:'Meta','BRK.B':'Berkshire'};
+
+let pricesLoaded = false;
+
+function fetchLivePrices() {
+  // Apply small random variation to make prices feel live
+  Object.keys(SIM_PRICES).forEach(t => {
+    SIM_PRICES[t] = Math.round(SIM_PRICES[t] * (1 + (Math.random() * 0.04 - 0.02)) * 100) / 100;
+  });
+  rebuildStockSelect();
+  refreshPortfolio();
+  document.querySelector('.price-tag').textContent = 'Simulated prices';
+  document.querySelector('.price-dot').style.background = 'var(--green)';
+}
+
+function rebuildStockSelect() {
+  const sel = document.getElementById('stock-sel');
+  const current = sel.value.split('|')[0];
+  sel.innerHTML = Object.entries(SIM_PRICES).map(([t, p]) => {
+    const label = TICKER_LABELS[t] || t;
+    const displayTicker = t === 'BRK' ? 'BRK.B' : t;
+    return `<option value="${t}|${p}" ${t===current?'selected':''}>${displayTicker} — ${label} · $${p.toLocaleString()}</option>`;
+  }).join('');
+  updateCost();
+}
+
+fetchLivePrices();
 
 function switchTab(mode) {
   document.getElementById('buy-panel').style.display = mode==='buy'?'block':'none';
@@ -655,6 +690,11 @@ const KB = [
   {keys:['pe','price to earnings','valuation','expensive','cheap'],ans:`The P/E ratio (Price-to-Earnings) tells you how much you're paying for each dollar of a company's annual profit.\n\nP/E of 20 = you pay $20 for every $1 of yearly earnings\n\nAverage S&P 500 P/E: ~15–25\nBelow 15: potentially undervalued\nAbove 30: expensive (but may be justified if growth is fast)\n\nA high P/E isn't always bad — it often means investors expect strong future growth. Compare P/E within the same industry for context.`},
   {keys:['diversif','spread','risk','eggs','basket'],ans:`Diversification means spreading your investments so one bad outcome doesn't wreck everything.\n\nWays to diversify:\n• Across companies (don't put everything in one stock)\n• Across sectors (tech, healthcare, energy, etc.)\n• Across asset types (stocks + bonds + real estate)\n• Across countries (US + international)\n\nIndex funds handle most of this automatically — buying SPY gives you 500 companies in one purchase.`},
   {keys:['compound','grow','time','long term','patience'],ans:`Compound growth is the most powerful force in investing. You earn returns not just on your original money, but on all previous returns too.\n\nExample: $10,000 at 10%/year\n• After 10 years: $25,937\n• After 20 years: $67,275\n• After 30 years: $174,494\n\nThe money more than doubled in the last 10 years vs the first 10. This is why starting early matters more than investing a large amount later.`},
+  {keys:['market cap','capitalisation','capitalization','size'],ans:`Market cap is the total value of a company: share price × number of shares.\n\nSmall-cap: under $2 billion\nMid-cap: $2–10 billion\nLarge-cap: over $10 billion\nMega-cap: over $200 billion (Apple, Microsoft, etc.)\n\nLarger companies are generally more stable. Smaller companies have higher growth potential but more risk.`},
+  {keys:['short','short selling','shorting','borrow'],ans:`Short selling means borrowing shares and selling them, hoping the price falls so you can buy them back cheaper and keep the difference.\n\nExample: borrow and sell 10 shares at $100 = $1,000. Price drops to $70. Buy back for $700. Profit = $300.\n\nIt's extremely risky — if the price rises instead of falls, your losses are theoretically unlimited. Not recommended for beginners.`},
+  {keys:['ipo','public','listing','going public'],ans:`An IPO (Initial Public Offering) is when a private company sells shares to the public for the first time.\n\nCompanies do this to raise money for growth. Early investors and employees can also cash out some of their stake.\n\nIPOs can be exciting but risky — there's often limited financial history and lots of hype. Many IPOs underperform in their first year.`},
+  {keys:['moving average','ma','50 day','200 day','golden cross'],ans:`A moving average smooths out price data to show the underlying trend. The most watched are the 50-day and 200-day moving averages.\n\nWhen the 50-day crosses above the 200-day = "golden cross" (bullish signal)\nWhen the 50-day crosses below the 200-day = "death cross" (bearish signal)\n\nMoving averages are lagging indicators — they confirm trends rather than predict them.`},
+  {keys:['stop loss','stop-loss','limit','protect'],ans:`A stop-loss is an automatic sell order that triggers if a stock falls to a set price.\n\nExample: you buy at $100 and set a stop-loss at $85. If the price drops to $85, it sells automatically — limiting your loss to 15%.\n\nStop-losses are a key risk management tool. They remove emotion from the decision to sell and protect you from large unexpected losses.`},
 ];
 
 function findAnswer(q) {
@@ -662,7 +702,7 @@ function findAnswer(q) {
   for (const item of KB) {
     if (item.keys.some(k => ql.includes(k))) return item.ans;
   }
-  return `Great question! I don't have a specific answer for that in my knowledge base yet.\n\nTry searching for related terms like: stocks, bonds, dividends, ETF, P/E ratio, diversification, compound interest, Roth IRA, or dollar-cost averaging.\n\nFor deeper research, Investopedia.com is an excellent free resource.`;
+  return `Great question! Here are some topics I can help with:\n\n• What is a stock / share\n• Bonds and fixed income\n• Dividends and yield\n• ETFs and index funds\n• P/E ratio and valuation\n• Dollar-cost averaging\n• Diversification\n• Market crashes and bear markets\n• Compound growth\n• Roth IRA and retirement\n• Short selling\n• IPOs\n• Moving averages\n• Stop-losses\n\nTry asking about any of these!`;
 }
 
 function appendBubble(role, text) {
@@ -692,13 +732,12 @@ function quickAsk(q) {
   }, 50);
 }
 
-// Unregister any old service workers and clear caches
+// ── SERVICE WORKER ──
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => reg.unregister());
-  });
-  caches.keys().then(keys => {
-    keys.forEach(key => caches.delete(key));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.warn('SW registration failed:', err));
   });
 }
 </script>
