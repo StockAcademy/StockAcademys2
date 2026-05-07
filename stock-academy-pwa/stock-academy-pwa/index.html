@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="StockAcademy"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<title>Stock Market Academy</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap');
+  :root {
+    --bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;
+    --border:rgba(255,255,255,0.08);--text:#f0f0f5;--muted:#888899;
+    --green:#22c55e;--green-dim:rgba(34,197,94,0.12);
+    --red:#f43f5e;--red-dim:rgba(244,63,94,0.12);
+    --gold:#f59e0b;--blue:#3b82f6;
+    --radius:16px;--radius-sm:10px;
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+  .header{position:sticky;top:0;z-index:100;background:rgba(10,10,15,0.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:calc(16px + env(safe-area-inset-top,0px)) 20px 12px}
+  .header-top{display:flex;align-items:center;gap:12px}
+  .app-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0f2010,#1a3a20);border:1px solid rgba(34,197,94,0.3);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .app-title{font-family:'DM Serif Display',serif;font-size:20px}
+  .app-sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .streak-badge{margin-left:auto;display:flex;align-items:center;gap:5px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25);border-radius:20px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--gold)}
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(10,10,15,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bottom)}
+  .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;cursor:pointer;transition:all 0.2s;border:none;background:none;color:var(--muted);font-family:'DM Sans',sans-serif}
+  .nav-item.active{color:var(--green)}
+  .nav-icon{font-size:22px;margin-bottom:3px}
+  .nav-label{font-size:10px;font-weight:500;letter-spacing:0.3px}
+  .main{padding:20px 16px;padding-bottom:calc(80px + var(--safe-bottom))}
+  .section{display:none}.section.active{display:block}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+  .section-heading{font-family:'DM Serif Display',serif;font-size:26px;margin-bottom:4px;line-height:1.2}
+  .section-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5}
+  h3{font-size:15px;font-weight:600;margin-bottom:8px}
+
+  /* ONBOARDING */
+  .onboarding{background:linear-gradient(135deg,rgba(34,197,94,0.08),rgba(59,130,246,0.06));border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+  .onboarding-title{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:8px}
+  .onboarding-steps{display:flex;flex-direction:column;gap:8px;margin:12px 0 16px}
+  .onboarding-step{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+  .onboarding-step-num{width:22px;height:22px;border-radius:50%;background:var(--green-dim);border:1px solid rgba(34,197,94,0.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green);flex-shrink:0}
+
+  /* TOPICS */
+  .topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .topic-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px;cursor:pointer;transition:all 0.2s;position:relative}
+  .topic-card:active{transform:scale(0.97)}
+  .topic-card.selected{border-color:var(--green);background:var(--green-dim)}
+  .topic-card.done::after{content:'✓';position:absolute;top:8px;right:8px;width:18px;height:18px;border-radius:50%;background:var(--green-dim);color:var(--green);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .topic-emoji{font-size:24px;margin-bottom:8px}
+  .topic-name{font-size:13px;font-weight:600;margin-bottom:3px}
+  .topic-hint{font-size:11px;color:var(--muted);line-height:1.4}
+
+  /* CONTENT */
+  .learn-content{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:4px}
+  .learn-content h4{font-size:14px;font-weight:600;color:var(--green);margin:14px 0 6px}
+  .learn-content h4:first-child{margin-top:0}
+  .learn-content p{font-size:14px;line-height:1.75;color:var(--text);margin-bottom:8px}
+  .learn-content p:last-child{margin-bottom:0}
+  .learn-content .highlight{background:rgba(34,197,94,0.08);border-left:3px solid var(--green);padding:10px 12px;border-radius:0 8px 8px 0;margin:10px 0;font-size:13px;color:var(--muted);line-height:1.6}
+
+  /* BUTTONS */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--text);cursor:pointer;transition:all 0.2s}
+  .btn:active{transform:scale(0.97)}
+  .btn-green{background:var(--green-dim);border-color:rgba(34,197,94,0.3);color:var(--green)}
+  .btn-red{background:var(--red-dim);border-color:rgba(244,63,94,0.3);color:var(--red)}
+  .btn-full{width:100%;justify-content:center}
+
+  /* QUIZ */
+  .quiz-stats{display:flex;gap:8px;margin-bottom:16px}
+  .quiz-stat{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;text-align:center}
+  .quiz-stat-val{font-size:20px;font-weight:700}
+  .quiz-stat-val.up{color:var(--green)}
+  .quiz-stat-val.gold{color:var(--gold)}
+  .quiz-stat-label{font-size:10px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:0.4px}
+  .quiz-q{font-size:16px;font-weight:500;line-height:1.5;margin-bottom:16px}
+  .quiz-opt{width:100%;text-align:left;padding:13px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);cursor:pointer;margin-bottom:8px;transition:all 0.2s}
+  .quiz-opt:active{transform:scale(0.99)}
+  .quiz-opt.correct{background:var(--green-dim);border-color:rgba(34,197,94,0.5);color:var(--green)}
+  .quiz-opt.wrong{background:var(--red-dim);border-color:rgba(244,63,94,0.4);color:var(--red)}
+  .quiz-feedback{margin-top:12px;padding:14px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;line-height:1.6;color:var(--muted);border-left:3px solid var(--green)}
+
+  /* SIMULATOR */
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .stat-box{background:var(--surface2);border-radius:var(--radius-sm);padding:12px 10px;text-align:center}
+  .stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+  .stat-val{font-size:17px;font-weight:600}
+  .stat-val.up{color:var(--green)}.stat-val.down{color:var(--red)}
+  .tab-row{display:flex;gap:8px;margin-bottom:14px}
+  .tab-btn{flex:1;padding:9px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.2s}
+  .tab-btn.active-buy{background:var(--green-dim);border-color:rgba(34,197,94,0.3);color:var(--green)}
+  .tab-btn.active-sell{background:var(--red-dim);border-color:rgba(244,63,94,0.3);color:var(--red)}
+  select{width:100%;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:10px;-webkit-appearance:none}
+  input[type=range]{width:100%;accent-color:var(--green);margin:8px 0}
+  .row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .row-label{font-size:13px;color:var(--muted);min-width:70px}
+  .row-val{font-size:14px;font-weight:600}
+  .holding-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+  .holding-row:last-child{border-bottom:none}
+  .holding-ticker{font-size:15px;font-weight:600}
+  .holding-shares{font-size:12px;color:var(--muted);margin-top:2px}
+  .holding-pnl{font-size:11px;margin-top:2px}
+  .holding-val{font-size:15px;font-weight:600;color:var(--green)}
+  .sell-mini{padding:5px 12px;border-radius:6px;background:var(--red-dim);border:1px solid rgba(244,63,94,0.3);color:var(--red);font-size:12px;font-weight:600;cursor:pointer}
+  .sell-mini:active{transform:scale(0.95)}
+  .price-live{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+  .price-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  .price-tag{font-size:12px;color:var(--muted)}
+
+  /* GLOSSARY */
+  .search-input{width:100%;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;margin-bottom:16px;-webkit-appearance:none}
+  .search-input::placeholder{color:var(--muted)}
+  .search-input:focus{outline:none;border-color:rgba(34,197,94,0.4)}
+  .gloss-item{padding:14px 0;border-bottom:1px solid var(--border)}
+  .gloss-item:last-child{border-bottom:none}
+  .gloss-term{font-size:15px;font-weight:600;margin-bottom:4px}
+  .gloss-def{font-size:13px;color:var(--muted);line-height:1.6}
+
+  /* ASK */
+  .chat-history{margin-bottom:16px;display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto}
+  .chat-bubble-user{align-self:flex-end;background:var(--green-dim);border:1px solid rgba(34,197,94,0.2);border-radius:16px 16px 4px 16px;padding:10px 14px;font-size:14px;max-width:85%}
+  .chat-bubble-ai{align-self:flex-start;background:var(--surface2);border:1px solid var(--border);border-radius:4px 16px 16px 16px;padding:10px 14px;font-size:14px;line-height:1.65;max-width:90%;white-space:pre-wrap}
+  .quick-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .quick-btn{padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);cursor:pointer;transition:all 0.2s}
+  .quick-btn:active{background:var(--green-dim);border-color:rgba(34,197,94,0.3);color:var(--green)}
+  .ask-wrap{display:flex;gap:8px;margin-bottom:16px}
+  .ask-input{flex:1;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;-webkit-appearance:none}
+  .ask-input:focus{outline:none;border-color:rgba(34,197,94,0.4)}
+  .ask-input::placeholder{color:var(--muted)}
+  .send-btn{padding:12px 16px;border-radius:var(--radius-sm);background:var(--green-dim);border:1px solid rgba(34,197,94,0.3);color:var(--green);font-size:20px;cursor:pointer;display:flex;align-items:center}
+  .send-btn:active{transform:scale(0.95)}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:calc(80px + var(--safe-bottom) + 12px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:10px 18px;font-size:13px;font-weight:500;z-index:200;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .reset-btn{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="app-icon">📈</div>
+    <div><div class="app-title">Stock Academy</div><div class="app-sub">Learn · Quiz · Invest</div></div>
+    <div class="streak-badge">🔥 <span id="streak-num">0</span> day streak</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- LEARN -->
+  <div id="sec-learn" class="section active">
+    <div id="onboarding-card" class="onboarding" style="display:none">
+      <div class="onboarding-title">👋 Welcome to Stock Academy</div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6">Your progress is saved automatically. Here's how to get started:</p>
+      <div class="onboarding-steps">
+        <div class="onboarding-step"><div class="onboarding-step-num">1</div>Pick a topic below to read an explanation</div>
+        <div class="onboarding-step"><div class="onboarding-step-num">2</div>Head to Quiz to test what you've learned</div>
+        <div class="onboarding-step"><div class="onboarding-step-num">3</div>Practice trading in Simulate with $10k</div>
+      </div>
+      <button class="btn btn-green" onclick="dismissOnboarding()">Let's go ↗</button>
+    </div>
+    <p class="section-heading">What do you want to learn?</p>
+    <p class="section-sub">Pick a topic to read a clear explanation.</p>
+    <div class="topic-grid">
+      <div class="topic-card" id="topic-0" onclick="learnTopic(this,0)"><div class="topic-emoji">📈</div><div class="topic-name">What is a stock?</div><div class="topic-hint">Shares, ownership & going public</div></div>
+      <div class="topic-card" id="topic-1" onclick="learnTopic(this,1)"><div class="topic-emoji">🏛️</div><div class="topic-name">How markets work</div><div class="topic-hint">Exchanges, buyers & price discovery</div></div>
+      <div class="topic-card" id="topic-2" onclick="learnTopic(this,2)"><div class="topic-emoji">📊</div><div class="topic-name">Reading stock data</div><div class="topic-hint">P/E, EPS, market cap, dividends</div></div>
+      <div class="topic-card" id="topic-3" onclick="learnTopic(this,3)"><div class="topic-emoji">🧠</div><div class="topic-name">Strategies</div><div class="topic-hint">Value, growth, index funds</div></div>
+      <div class="topic-card" id="topic-4" onclick="learnTopic(this,4)"><div class="topic-emoji">🛡️</div><div class="topic-name">Managing risk</div><div class="topic-hint">Diversification & stop-losses</div></div>
+      <div class="topic-card" id="topic-5" onclick="learnTopic(this,5)"><div class="topic-emoji">🔍</div><div class="topic-name">Analyzing stocks</div><div class="topic-hint">Fundamental vs technical</div></div>
+    </div>
+    <div id="learn-out" style="display:none"></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="sec-quiz" class="section">
+    <p class="section-heading">Test yourself</p>
+    <p class="section-sub">30+ questions, randomly shuffled every time.</p>
+    <div class="quiz-stats">
+      <div class="quiz-stat"><div class="quiz-stat-val up" id="qs-correct">0</div><div class="quiz-stat-label">Correct</div></div>
+      <div class="quiz-stat"><div class="quiz-stat-val" id="qs-total">0</div><div class="quiz-stat-label">Total</div></div>
+      <div class="quiz-stat"><div class="quiz-stat-val" id="qs-pct">—</div><div class="quiz-stat-label">Accuracy</div></div>
+      <div class="quiz-stat"><div class="quiz-stat-val gold" id="qs-streak">0</div><div class="quiz-stat-label">Streak</div></div>
+    </div>
+    <div id="quiz-area"><button class="btn btn-green btn-full" onclick="loadQuiz()">Start quiz ↗</button></div>
+    <div style="margin-top:12px;text-align:center"><button class="reset-btn" onclick="resetQuiz()">Reset stats</button></div>
+  </div>
+
+  <!-- SIMULATOR -->
+  <div id="sec-sim" class="section">
+    <p class="section-heading">Paper trading</p>
+    <p class="section-sub">Practice with $10,000 in virtual money.</p>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-label">Cash</div><div class="stat-val" id="cash-v">$10,000</div></div>
+      <div class="stat-box"><div class="stat-label">Portfolio</div><div class="stat-val" id="port-v">$0</div></div>
+      <div class="stat-box"><div class="stat-label">Gain/Loss</div><div class="stat-val" id="gain-v">$0</div></div>
+    </div>
+    <div class="card">
+      <div class="tab-row">
+        <button class="tab-btn active-buy" id="tab-buy" onclick="switchTab('buy')">Buy</button>
+        <button class="tab-btn" id="tab-sell" onclick="switchTab('sell')">Sell</button>
+      </div>
+      <div id="buy-panel">
+        <div class="price-live"><div class="price-dot"></div><span class="price-tag">Simulated prices</span></div>
+        <select id="stock-sel" onchange="updateCost()">
+          <option value="AAPL|189">AAPL — Apple · $189</option>
+          <option value="MSFT|420">MSFT — Microsoft · $420</option>
+          <option value="NVDA|950">NVDA — Nvidia · $950</option>
+          <option value="TSLA|175">TSLA — Tesla · $175</option>
+          <option value="AMZN|195">AMZN — Amazon · $195</option>
+          <option value="GOOGL|170">GOOGL — Alphabet · $170</option>
+          <option value="SPY|535">SPY — S&P 500 ETF · $535</option>
+          <option value="QQQ|455">QQQ — Nasdaq ETF · $455</option>
+          <option value="META|520">META — Meta · $520</option>
+          <option value="BRK|430">BRK.B — Berkshire · $430</option>
+        </select>
+        <div class="row">
+          <span class="row-label">Shares</span>
+          <input type="range" min="1" max="20" value="1" id="shares-r" oninput="updateCost()" style="flex:1"/>
+          <span class="row-val" id="shares-v">1</span>
+        </div>
+        <div class="row" style="margin-bottom:14px">
+          <span class="row-label">Total cost</span>
+          <span class="row-val" id="cost-v" style="color:var(--gold)">$189</span>
+        </div>
+        <button class="btn btn-green btn-full" onclick="buyStock()">Buy shares ↗</button>
+      </div>
+      <div id="sell-panel" style="display:none">
+        <div id="sell-holdings-list"><p style="font-size:13px;color:var(--muted);padding:8px 0">No holdings to sell yet.</p></div>
+      </div>
+    </div>
+    <div id="holdings-card" style="display:none" class="card">
+      <h3 style="margin-bottom:12px">Your holdings</h3>
+      <div id="holdings-list"></div>
+    </div>
+    <div style="margin-top:12px;text-align:center"><button class="reset-btn" onclick="resetSimulator()">Reset portfolio</button></div>
+  </div>
+
+  <!-- GLOSSARY -->
+  <div id="sec-glossary" class="section">
+    <p class="section-heading">Glossary</p>
+    <p class="section-sub">Every term you need to know as an investor.</p>
+    <input class="search-input" placeholder="🔍  Search terms..." oninput="filterGloss(this.value)"/>
+    <div id="gloss-list"></div>
+  </div>
+
+  <!-- ASK -->
+  <div id="sec-ask" class="section">
+    <p class="section-heading">Ask the tutor</p>
+    <p class="section-sub">Instant answers from our built-in knowledge base.</p>
+    <div class="quick-btns">
+      <button class="quick-btn" onclick="quickAsk('stock vs bond')">Stock vs bond</button>
+      <button class="quick-btn" onclick="quickAsk('dividends')">Dividends</button>
+      <button class="quick-btn" onclick="quickAsk('dollar cost averaging')">Dollar-cost avg</button>
+      <button class="quick-btn" onclick="quickAsk('market crash')">Market crashes</button>
+      <button class="quick-btn" onclick="quickAsk('start investing 100')">Start with $100</button>
+      <button class="quick-btn" onclick="quickAsk('roth ira')">Roth IRA</button>
+      <button class="quick-btn" onclick="quickAsk('etf')">What is an ETF?</button>
+      <button class="quick-btn" onclick="quickAsk('pe ratio')">P/E ratio</button>
+    </div>
+    <div id="chat-history" class="chat-history"></div>
+    <div class="ask-wrap">
+      <input class="ask-input" id="ask-q" placeholder="Ask anything about stocks..." onkeydown="if(event.key==='Enter')doAsk()"/>
+      <button class="send-btn" onclick="doAsk()">↗</button>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="nav('learn',this)"><span class="nav-icon">📚</span><span class="nav-label">Learn</span></button>
+  <button class="nav-item" onclick="nav('quiz',this)"><span class="nav-icon">🎯</span><span class="nav-label">Quiz</span></button>
+  <button class="nav-item" onclick="nav('sim',this)"><span class="nav-icon">💼</span><span class="nav-label">Simulate</span></button>
+  <button class="nav-item" onclick="nav('glossary',this)"><span class="nav-icon">📖</span><span class="nav-label">Glossary</span></button>
+  <button class="nav-item" onclick="nav('ask',this)"><span class="nav-icon">🤖</span><span class="nav-label">Ask AI</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── UTILS ──
+function showToast(msg,d=2500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d)}
+function nav(id,btn){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));document.getElementById('sec-'+id).classList.add('active');btn.classList.add('active')}
+function save(k,v){try{localStorage.setItem('sa_'+k,JSON.stringify(v))}catch(e){}}
+function load(k,d){try{const v=localStorage.getItem('sa_'+k);return v?JSON.parse(v):d}catch(e){return d}}
+
+// ── STREAK ──
+(function(){
+  const today=new Date().toDateString();
+  const last=load('last_visit',null);
+  let streak=load('streak',0);
+  if(last!==today){
+    const yest=new Date();yest.setDate(yest.getDate()-1);
+    streak=(last===yest.toDateString())?streak+1:1;
+    save('last_visit',today);save('streak',streak);
+  }
+  document.getElementById('streak-num').textContent=streak;
+})();
+
+// ── ONBOARDING ──
+function dismissOnboarding(){document.getElementById('onboarding-card').style.display='none';save('onboarded',true)}
+if(!load('onboarded',false))document.getElementById('onboarding-card').style.display='block';
+
+// ── LEARN CONTENT ──
+const TOPICS = [
+  {
+    title:'What is a Stock?',
+    html:`
+      <h4>The basic idea</h4>
+      <p>A stock (also called a share) is a small piece of ownership in a company. When a company wants to raise money, it can split itself into millions of tiny pieces and sell them to the public. Each piece is a share.</p>
+      <div class="highlight">If Apple splits into 1 billion shares and you buy 100, you own 0.00001% of Apple — and you're entitled to that slice of its profits and assets.</div>
+      <h4>Why do companies issue stock?</h4>
+      <p>Instead of borrowing money (and paying it back with interest), companies can raise money by selling shares. This is called an IPO — Initial Public Offering — when a private company first sells stock to the public.</p>
+      <h4>What do shareholders get?</h4>
+      <p>As a shareholder you can: earn dividends (a share of profits), vote on major company decisions, and sell your shares for a profit if the price rises. But if the company does badly, your shares can lose value too.</p>
+      <h4>Common vs preferred stock</h4>
+      <p>Common stock gives you voting rights but you're last to get paid if a company goes bankrupt. Preferred stock usually pays a fixed dividend and gets priority — but typically has no voting rights.</p>
+    `
+  },
+  {
+    title:'How Markets Work',
+    html:`
+      <h4>What is a stock exchange?</h4>
+      <p>A stock exchange is a marketplace where buyers and sellers come together to trade shares. The two biggest in the US are the NYSE (New York Stock Exchange) and NASDAQ. Think of it like eBay — but for company ownership.</p>
+      <h4>How prices are determined</h4>
+      <p>Stock prices move based on supply and demand. If more people want to buy a stock than sell it, the price rises. If more want to sell, it falls. News, earnings reports, and economic data all shift this balance constantly.</p>
+      <div class="highlight">A stock isn't worth what a company is worth today — it's worth what people believe it will be worth in the future.</div>
+      <h4>Market hours</h4>
+      <p>US markets are open Monday–Friday, 9:30am–4:00pm Eastern Time. There's also pre-market (4am–9:30am) and after-hours trading, but these are less liquid and more volatile.</p>
+      <h4>Bulls and bears</h4>
+      <p>A bull market is when prices are rising (generally 20%+ from a recent low). A bear market is when prices fall 20%+ from a recent high. Bull markets historically last longer than bear markets.</p>
+    `
+  },
+  {
+    title:'Reading Stock Data',
+    html:`
+      <h4>Price & market cap</h4>
+      <p>The stock price is just the cost of one share. Market cap (market capitalisation) is the total value of a company: share price × total shares. A $150 stock could be a smaller company than a $20 stock if it has fewer shares.</p>
+      <h4>P/E ratio (Price-to-Earnings)</h4>
+      <p>This compares a stock's price to its earnings per share. A P/E of 20 means you're paying $20 for every $1 of annual profit. High P/E = high growth expectations. Low P/E = may be undervalued (or struggling).</p>
+      <div class="highlight">Rule of thumb: the average S&P 500 P/E is around 15–25. Above 30 is considered expensive; below 15 may be cheap.</div>
+      <h4>EPS (Earnings Per Share)</h4>
+      <p>Net profit divided by number of shares. Higher EPS means more profit per share. Growing EPS over time is a good sign for a company's health.</p>
+      <h4>Dividend yield</h4>
+      <p>If a company pays dividends, the yield is the annual dividend divided by the share price. A 3% yield means you earn $3 per year for every $100 invested. Great for income investors.</p>
+      <h4>52-week high/low</h4>
+      <p>The highest and lowest price a stock has traded at in the past year. Useful context: is the stock near its highs (momentum?) or near its lows (opportunity or trouble?).</p>
+    `
+  },
+  {
+    title:'Investment Strategies',
+    html:`
+      <h4>Buy and hold</h4>
+      <p>Buy quality stocks or index funds and hold them for years or decades. Warren Buffett's favourite approach. Time in the market beats timing the market — historically the S&P 500 has returned ~10% per year on average.</p>
+      <h4>Value investing</h4>
+      <p>Find stocks trading below their true worth — like finding a $50 item on sale for $30. You look for low P/E ratios, strong balance sheets, and temporarily out-of-favour companies. Made famous by Benjamin Graham and Warren Buffett.</p>
+      <h4>Growth investing</h4>
+      <p>Buy companies growing revenues and earnings fast, even if they're expensive today. Think Amazon in 2010 or Tesla in 2019. Higher risk, higher potential reward. You're betting on the future.</p>
+      <div class="highlight">Index funds are the easiest strategy for most people — just buy the whole market and you'll match its returns with minimal effort and fees.</div>
+      <h4>Dividend investing</h4>
+      <p>Focus on companies that pay regular dividends. Great for passive income. Companies like Coca-Cola and Johnson & Johnson have paid increasing dividends for 50+ years (called Dividend Aristocrats).</p>
+      <h4>Dollar-cost averaging</h4>
+      <p>Invest a fixed amount regularly (e.g. $100/month) regardless of price. When prices are low, you automatically buy more shares. When they're high, you buy fewer. Removes the stress of timing the market.</p>
+    `
+  },
+  {
+    title:'Managing Risk',
+    html:`
+      <h4>Diversification</h4>
+      <p>Don't put all your eggs in one basket. Spread investments across different companies, sectors, and asset classes. If one stock crashes, your whole portfolio doesn't. Index funds are naturally diversified.</p>
+      <h4>Position sizing</h4>
+      <p>Don't bet too much on any single stock. A common rule: no more than 5–10% of your portfolio in one company. This limits the damage if something goes wrong.</p>
+      <div class="highlight">Even professional fund managers rarely beat the market consistently. Humility about what you don't know is one of the best risk management tools.</div>
+      <h4>Stop-losses</h4>
+      <p>A stop-loss is an automatic sell order if a stock drops to a certain price. Example: you buy at $100, set a stop-loss at $85 — if the price falls to $85, it sells automatically, limiting your loss to 15%.</p>
+      <h4>Understanding volatility</h4>
+      <p>Volatility measures how much a stock's price swings. High-volatility stocks can double or halve quickly. Beta compares a stock's volatility to the market — a beta of 1.5 means the stock moves 1.5x as much as the market.</p>
+      <h4>Time horizon</h4>
+      <p>The longer your time horizon, the more risk you can take. Short-term money (needed in 1–2 years) shouldn't be in stocks. Long-term money (10+ years) can ride out market crashes and historically recovers.</p>
+    `
+  },
+  {
+    title:'Analyzing Stocks',
+    html:`
+      <h4>Fundamental analysis</h4>
+      <p>Looks at a company's actual business — revenue, profit, debt, management, competitive position. You read financial statements (income statement, balance sheet, cash flow) and ask: is this a good business at a fair price?</p>
+      <h4>Key financial statements</h4>
+      <p>Income statement: revenue minus costs = profit. Balance sheet: what the company owns (assets) vs owes (liabilities). Cash flow statement: actual cash moving in and out — harder to fake than accounting profit.</p>
+      <div class="highlight">Cash flow is king. A company can show accounting profit but still be running out of cash — always check the cash flow statement.</div>
+      <h4>Technical analysis</h4>
+      <p>Looks at price charts and trading patterns to predict future price movements. Uses tools like moving averages (average price over time), RSI (is the stock overbought or oversold?), and support/resistance levels.</p>
+      <h4>Moving averages</h4>
+      <p>The 50-day and 200-day moving averages are widely watched. When the 50-day crosses above the 200-day, that's called a "golden cross" — a bullish signal. The opposite is a "death cross" — bearish.</p>
+      <h4>Which should you use?</h4>
+      <p>Most long-term investors use fundamental analysis. Traders and short-term investors use technical analysis. Many use both together — fundamentals to pick what to buy, technicals to decide when to buy.</p>
+    `
+  }
+];
+
+let learnedTopics = load('learned_topics', []);
+learnedTopics.forEach(i => { const el = document.getElementById('topic-'+i); if(el) el.classList.add('done'); });
+
+function learnTopic(el, idx) {
+  document.querySelectorAll('.topic-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const t = TOPICS[idx];
+  const out = document.getElementById('learn-out');
+  out.style.display = 'block';
+  out.innerHTML = `<div class="learn-content"><h4 style="font-size:16px;color:var(--text);margin-bottom:12px">${t.title}</h4>${t.html}</div>`;
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  el.classList.add('done');
+  if (!learnedTopics.includes(idx)) { learnedTopics.push(idx); save('learned_topics', learnedTopics); }
+}
+
+// ── QUIZ ──
+const QUIZ_QUESTIONS = [
+  {q:"What is a stock?",opts:["A loan you give to a company","A unit of ownership in a company","A type of bank account","A government bond"],correct:1,exp:"A stock (or share) represents a small ownership stake in a company. Shareholders own a piece of the business."},
+  {q:"What does IPO stand for?",opts:["International Payment Order","Initial Public Offering","Investment Portfolio Option","Income Per Owner"],correct:1,exp:"An IPO (Initial Public Offering) is when a private company first sells its shares to the public on a stock exchange."},
+  {q:"What is a bull market?",opts:["A market that is falling","A market where only bonds are traded","A period of rising stock prices","A market open only to professional investors"],correct:2,exp:"A bull market is a period when stock prices are rising — generally defined as a 20%+ gain from a recent low. Bulls charge forward!"},
+  {q:"If a stock has a P/E ratio of 25, what does that mean?",opts:["The stock pays a 25% dividend","Investors are paying $25 for every $1 of annual earnings","The stock has grown 25% this year","The company has $25 billion in profit"],correct:1,exp:"The P/E ratio (Price-to-Earnings) tells you how much investors pay per dollar of profit. P/E of 25 means $25 paid for each $1 of earnings."},
+  {q:"What is market capitalisation?",opts:["The total debt a company owes","The headquarters location value","Share price multiplied by total shares outstanding","The maximum amount a stock can be worth"],correct:2,exp:"Market cap = share price × total shares. It represents the total market value of a company, not just the price of one share."},
+  {q:"What is diversification?",opts:["Investing all money in one great stock","Spreading investments to reduce risk","Trading stocks every day","Only investing in government bonds"],correct:1,exp:"Diversification means spreading investments across different assets, sectors, and companies so one bad investment doesn't ruin your whole portfolio."},
+  {q:"What does EPS stand for?",opts:["Equity Per Share","Exchange Price Standard","Earnings Per Share","Expected Profit Score"],correct:2,exp:"EPS (Earnings Per Share) is a company's net profit divided by its number of shares. Higher EPS generally indicates a more profitable company."},
+  {q:"What is a dividend?",opts:["A fee charged when you sell a stock","A portion of company profits paid to shareholders","The difference between buy and sell price","A type of stock index"],correct:1,exp:"Dividends are cash payments companies make to shareholders — usually quarterly. Not all companies pay dividends; growth companies often reinvest profits instead."},
+  {q:"What is dollar-cost averaging?",opts:["Buying only when prices are low","Investing a fixed amount at regular intervals regardless of price","Converting dollars to other currencies","Averaging the price of multiple stocks"],correct:1,exp:"Dollar-cost averaging means investing a set amount regularly (e.g. $100/month). You automatically buy more shares when prices are low and fewer when high."},
+  {q:"What is a bear market?",opts:["A market with many new companies","When stock prices fall 20% or more from recent highs","A market for agricultural stocks only","When trading is suspended"],correct:1,exp:"A bear market is defined as a 20%+ decline from recent highs, sustained over time. Bears swipe downward — hence the name."},
+  {q:"What is an ETF?",opts:["A type of savings account","An Electronic Trading Fee","A fund that tracks an index and trades like a stock","A government-issued bond"],correct:2,exp:"An ETF (Exchange-Traded Fund) bundles many stocks together and trades on an exchange like a single stock. SPY, for example, tracks the S&P 500."},
+  {q:"What is the S&P 500?",opts:["The 500 richest people in America","An index tracking 500 of the largest US companies","A government savings bond rate","A type of trading algorithm"],correct:1,exp:"The S&P 500 is a stock market index that tracks 500 of the largest publicly traded US companies. It's widely used as a benchmark for the overall market."},
+  {q:"What does a stop-loss order do?",opts:["Prevents you from buying overpriced stocks","Automatically sells a stock if it falls to a set price","Locks in your profits","Stops a company from issuing more shares"],correct:1,exp:"A stop-loss is an automatic sell order triggered when a stock reaches a specified lower price — it limits your potential loss on a position."},
+  {q:"What is the difference between stocks and bonds?",opts:["Stocks are safer than bonds","Bonds give you ownership; stocks give you a loan","Stocks give ownership in a company; bonds are loans to a company","There is no difference"],correct:2,exp:"Stocks give you partial ownership of a company (higher risk, higher potential return). Bonds are loans you make to companies or governments (lower risk, fixed return)."},
+  {q:"What is a 52-week high?",opts:["The highest trading volume in a year","The highest price a stock has traded at in the past year","A 52% gain in one year","The anniversary of a company's IPO"],correct:1,exp:"The 52-week high is the highest price a stock has reached in the past year. It's a key reference point — stocks near their highs show strength; near lows may signal weakness or opportunity."},
+  {q:"What is compound interest?",opts:["Interest charged on loans only","Earning returns on your original investment only","Earning returns on both your original investment and previous returns","A type of government bond"],correct:2,exp:"Compound interest means earning returns on your returns. Over time this causes wealth to grow exponentially — Einstein allegedly called it the 8th wonder of the world."},
+  {q:"What does 'going long' on a stock mean?",opts:["Holding a stock for a very long time","Buying a stock expecting its price to rise","Borrowing shares to sell them","Investing in long-term government bonds"],correct:1,exp:"Going long means buying a stock with the expectation that its price will rise. It's the standard way most investors participate in the stock market."},
+  {q:"What is short selling?",opts:["Buying stocks quickly","Selling shares you borrowed, hoping to buy them back cheaper","Investing for less than a year","Selling only a small number of shares"],correct:1,exp:"Short selling involves borrowing shares and selling them, hoping the price falls so you can buy them back cheaper and return them. It's high-risk — losses are theoretically unlimited."},
+  {q:"What is a blue-chip stock?",opts:["A stock that costs less than $1","Shares in technology companies only","Shares of large, stable, well-established companies","Stocks with the highest dividends"],correct:2,exp:"Blue-chip stocks are shares of large, reputable companies with long track records of performance — like Apple, Microsoft, or Coca-Cola. They're generally considered lower-risk."},
+  {q:"What is an index fund?",opts:["A fund managed by expert stock pickers","A fund that tracks a market index like the S&P 500","A fund that only invests in one company","A government-run savings fund"],correct:1,exp:"An index fund passively tracks a market index (like the S&P 500) by holding the same stocks in the same proportions. Low fees and broad diversification make them popular for long-term investors."},
+  {q:"What does ROE stand for?",opts:["Rate of Exchange","Return on Equity","Revenue Over Expenses","Risk of Exposure"],correct:1,exp:"ROE (Return on Equity) measures how efficiently a company generates profit from shareholders' equity. Higher ROE generally indicates better management performance."},
+  {q:"What is liquidity in stocks?",opts:["The amount of cash a company holds","How easily a stock can be bought or sold without affecting its price","The dividend payment schedule","A measure of company debt"],correct:1,exp:"Liquidity refers to how easily you can buy or sell an asset without significantly changing its price. Major stocks like Apple are highly liquid — you can trade millions of shares without moving the price much."},
+  {q:"What is volatility?",opts:["The direction a stock is trending","How much a stock's price fluctuates","The number of trades per day","A measure of a company's profit margins"],correct:1,exp:"Volatility measures how much a stock's price swings up and down. High volatility means bigger, faster price changes — more risk but also more potential reward."},
+  {q:"What is a portfolio?",opts:["A company's annual report","The trading platform you use","Your entire collection of investments","A type of mutual fund"],correct:2,exp:"A portfolio is the full collection of all your investments — stocks, bonds, ETFs, cash, and other assets. Managing your portfolio means balancing risk and return across all your holdings."},
+  {q:"What is a moving average used for?",opts:["Calculating average dividend payments","Smoothing out price data to identify trends","Measuring company earnings growth","Tracking inflation rates"],correct:1,exp:"A moving average smooths out short-term price fluctuations to help identify the underlying trend. The 50-day and 200-day moving averages are the most widely watched by investors."},
+  {q:"What is fundamental analysis?",opts:["Analysing stock price charts and patterns","Studying a company's financial health and business fundamentals","Using algorithms to trade automatically","Tracking market sentiment on social media"],correct:1,exp:"Fundamental analysis evaluates a company's actual business — revenue, profits, debt, management, and competitive position — to determine if the stock is a good investment at its current price."},
+  {q:"What is a Roth IRA?",opts:["A type of corporate bond","A US retirement account where withdrawals in retirement are tax-free","A government stock market index","A type of savings account with no tax benefits"],correct:1,exp:"A Roth IRA is a US retirement account funded with after-tax money. Your investments grow tax-free and qualified withdrawals in retirement are completely tax-free — great for young investors."},
+  {q:"What does 'buy the dip' mean?",opts:["Investing in declining industries","Purchasing stocks after a price drop, expecting recovery","Selling stocks when they fall","Buying bonds instead of stocks"],correct:1,exp:"'Buying the dip' means purchasing shares after a price decline, betting the drop is temporary and the stock will recover. It can be profitable but risky if the decline continues."},
+  {q:"What is rebalancing a portfolio?",opts:["Selling all investments and starting over","Periodically adjusting your holdings to maintain your target asset allocation","Adding more money to your best-performing stocks","Switching from stocks to bonds completely"],correct:1,exp:"Rebalancing means periodically buying and selling assets to restore your desired allocation. If stocks outperform and grow from 60% to 75% of your portfolio, you'd sell some stocks and buy bonds to get back to 60/40."},
+  {q:"What is the difference between a growth stock and a value stock?",opts:["Growth stocks are cheaper; value stocks are expensive","Growth stocks are expected to grow fast; value stocks trade below their perceived worth","Growth stocks pay higher dividends; value stocks don't pay dividends","There is no meaningful difference"],correct:1,exp:"Growth stocks are companies expected to grow faster than average (often tech companies). Value stocks are companies trading below what investors believe they're truly worth — often mature, 'boring' businesses."},
+];
+
+let quizPool = [], quizIdx = 0;
+let quizScore = load('quiz_correct', 0);
+let quizTotal = load('quiz_total', 0);
+let quizStreak = load('quiz_cur_streak', 0);
+
+function syncQuizUI() {
+  document.getElementById('qs-correct').textContent = quizScore;
+  document.getElementById('qs-total').textContent = quizTotal;
+  document.getElementById('qs-pct').textContent = quizTotal > 0 ? Math.round(quizScore/quizTotal*100)+'%' : '—';
+  document.getElementById('qs-streak').textContent = quizStreak;
+}
+syncQuizUI();
+
+function resetQuiz() {
+  if (!confirm('Reset all quiz stats?')) return;
+  quizScore = quizTotal = quizStreak = 0;
+  save('quiz_correct',0); save('quiz_total',0); save('quiz_cur_streak',0);
+  syncQuizUI();
+  document.getElementById('quiz-area').innerHTML = '<button class="btn btn-green btn-full" onclick="loadQuiz()">Start quiz ↗</button>';
+  showToast('Quiz stats reset ✓');
+}
+
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function loadQuiz() {
+  if (!quizPool.length || quizIdx >= quizPool.length) {
+    quizPool = shuffle(QUIZ_QUESTIONS);
+    quizIdx = 0;
+  }
+  const q = quizPool[quizIdx++];
+  const shuffledOpts = shuffle(q.opts.map((o,i) => ({text:o, origIdx:i})));
+  const newCorrect = shuffledOpts.findIndex(o => o.origIdx === q.correct);
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = `
+    <div class="quiz-q">${q.q}</div>
+    ${shuffledOpts.map((o,i) => `<button class="quiz-opt" id="qo${i}" onclick="checkQ(${i},${newCorrect},'${encodeURIComponent(q.exp)}')">${o.text}</button>`).join('')}
+    <div id="qfb" style="display:none"></div>
+    <div style="margin-top:14px"><button class="btn btn-green btn-full" onclick="loadQuiz()">Next question ↗</button></div>
+  `;
+}
+
+function checkQ(picked, correct, expEnc) {
+  document.querySelectorAll('.quiz-opt').forEach(b => b.onclick = null);
+  document.getElementById('qo'+correct).classList.add('correct');
+  if (picked !== correct) document.getElementById('qo'+picked).classList.add('wrong');
+  quizTotal++;
+  const ok = picked === correct;
+  if (ok) { quizScore++; quizStreak++; } else { quizStreak = 0; }
+  save('quiz_correct', quizScore); save('quiz_total', quizTotal); save('quiz_cur_streak', quizStreak);
+  syncQuizUI();
+  document.getElementById('qfb').style.display = 'block';
+  document.getElementById('qfb').innerHTML = `<div class="quiz-feedback">${ok ? '✅ Correct! ' : '❌ Not quite — '}${decodeURIComponent(expEnc)}</div>`;
+  if (ok && quizStreak > 1) showToast(`🔥 ${quizStreak} in a row!`);
+}
+
+// ── SIMULATOR ──
+let cash = load('sim_cash', 10000);
+let holdings = load('sim_holdings', {});
+let buyPrices = load('sim_buy_prices', {});
+const SIM_PRICES = {AAPL:189,MSFT:420,NVDA:950,TSLA:175,AMZN:195,GOOGL:170,SPY:535,QQQ:455,META:520,BRK:430};
+Object.keys(SIM_PRICES).forEach(t => { SIM_PRICES[t] = Math.round(SIM_PRICES[t] * (1 + (Math.random()*0.06-0.03))); });
+
+function switchTab(mode) {
+  document.getElementById('buy-panel').style.display = mode==='buy'?'block':'none';
+  document.getElementById('sell-panel').style.display = mode==='sell'?'block':'none';
+  document.getElementById('tab-buy').className = 'tab-btn' + (mode==='buy'?' active-buy':'');
+  document.getElementById('tab-sell').className = 'tab-btn' + (mode==='sell'?' active-sell':'');
+  if (mode==='sell') renderSellPanel();
+}
+
+function renderSellPanel() {
+  const keys = Object.keys(holdings).filter(t => holdings[t]?.shares > 0);
+  if (!keys.length) { document.getElementById('sell-holdings-list').innerHTML = '<p style="font-size:13px;color:var(--muted);padding:8px 0">No holdings to sell yet.</p>'; return; }
+  document.getElementById('sell-holdings-list').innerHTML = keys.map(t => {
+    const p = SIM_PRICES[t] || buyPrices[t] || 0;
+    const val = holdings[t].shares * p;
+    const pnl = val - holdings[t].shares * (buyPrices[t] || p);
+    return `<div class="holding-row"><div><div class="holding-ticker">${t}</div><div class="holding-shares">${holdings[t].shares} shares @ $${p}</div><div class="holding-pnl" style="color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}$${Math.round(pnl)}</div></div><button class="sell-mini" onclick="sellAll('${t}')">Sell all</button></div>`;
+  }).join('');
+}
+
+function updateCost() {
+  const [t,p] = document.getElementById('stock-sel').value.split('|');
+  const s = +document.getElementById('shares-r').value;
+  document.getElementById('shares-v').textContent = s;
+  document.getElementById('cost-v').textContent = '$' + (s * (SIM_PRICES[t] || +p)).toLocaleString();
+}
+document.getElementById('stock-sel').addEventListener('change', updateCost);
+updateCost();
+
+function buyStock() {
+  const [ticker] = document.getElementById('stock-sel').value.split('|');
+  const price = SIM_PRICES[ticker];
+  const shares = +document.getElementById('shares-r').value;
+  const cost = shares * price;
+  if (cost > cash) { showToast('❌ Not enough cash!'); return; }
+  cash -= cost;
+  const prev = holdings[ticker]?.shares || 0;
+  const prevCost = (buyPrices[ticker] || price) * prev;
+  if (!holdings[ticker]) holdings[ticker] = {shares:0};
+  holdings[ticker].shares += shares;
+  buyPrices[ticker] = (prevCost + cost) / holdings[ticker].shares;
+  saveSim(); refreshPortfolio();
+  showToast(`✅ Bought ${shares} share${shares>1?'s':''} of ${ticker}`);
+}
+
+function sellAll(ticker) {
+  if (!holdings[ticker]?.shares) return;
+  const price = SIM_PRICES[ticker] || buyPrices[ticker] || 0;
+  const proceeds = holdings[ticker].shares * price;
+  const pnl = proceeds - holdings[ticker].shares * (buyPrices[ticker] || price);
+  cash += proceeds;
+  delete holdings[ticker]; delete buyPrices[ticker];
+  saveSim(); refreshPortfolio(); renderSellPanel();
+  showToast(`${pnl>=0?'✅':'📉'} Sold ${ticker} · P&L: ${pnl>=0?'+':''}$${Math.round(pnl)}`);
+}
+
+function saveSim() { save('sim_cash',cash); save('sim_holdings',holdings); save('sim_buy_prices',buyPrices); }
+
+function resetSimulator() {
+  if (!confirm('Reset portfolio back to $10,000?')) return;
+  cash=10000; holdings={}; buyPrices={};
+  saveSim(); refreshPortfolio();
+  document.getElementById('holdings-card').style.display='none';
+  showToast('Portfolio reset ✓');
+}
+
+function refreshPortfolio() {
+  const keys = Object.keys(holdings).filter(t => holdings[t]?.shares > 0);
+  const portVal = keys.reduce((s,t) => s + holdings[t].shares * (SIM_PRICES[t] || buyPrices[t] || 0), 0);
+  const gain = portVal + cash - 10000;
+  document.getElementById('cash-v').textContent = '$' + Math.round(cash).toLocaleString();
+  document.getElementById('port-v').textContent = '$' + Math.round(portVal).toLocaleString();
+  const gEl = document.getElementById('gain-v');
+  gEl.textContent = (gain>=0?'+':'') + '$' + Math.round(Math.abs(gain)).toLocaleString();
+  gEl.className = 'stat-val ' + (gain>=0?'up':'down');
+  if (!keys.length) { document.getElementById('holdings-card').style.display='none'; return; }
+  document.getElementById('holdings-card').style.display='block';
+  document.getElementById('holdings-list').innerHTML = keys.map(t => {
+    const p = SIM_PRICES[t] || buyPrices[t] || 0;
+    const val = holdings[t].shares * p;
+    const pnl = val - holdings[t].shares * (buyPrices[t] || p);
+    return `<div class="holding-row"><div><div class="holding-ticker">${t}</div><div class="holding-shares">${holdings[t].shares} shares @ $${p}</div><div class="holding-pnl" style="color:${pnl>=0?'var(--green)':'var(--red)'}">${pnl>=0?'+':''}$${Math.round(pnl)}</div></div><div class="holding-val">$${Math.round(val).toLocaleString()}</div></div>`;
+  }).join('');
+}
+refreshPortfolio();
+
+// ── GLOSSARY ──
+const GLOSSARY = [
+  {term:'Stock (Share)',def:'A unit of ownership in a company. Owning shares gives you a stake in its profits and assets.'},
+  {term:'Bull market',def:'A period when stock prices are rising — generally a 20%+ gain from a recent low.'},
+  {term:'Bear market',def:'A prolonged decline in prices — typically a 20%+ drop from recent highs.'},
+  {term:'Dividend',def:'A portion of a company\'s earnings paid to shareholders, usually quarterly.'},
+  {term:'P/E ratio',def:'Price-to-Earnings ratio. Compares a stock\'s price to its earnings per share. A P/E of 20 means you pay $20 per $1 of annual profit.'},
+  {term:'Market cap',def:'Total value of all shares: price × shares. Small-cap (<$2B), mid-cap ($2–10B), large-cap (>$10B).'},
+  {term:'Index fund',def:'A fund that tracks an index like the S&P 500. Low-cost and diversified — ideal for passive investors.'},
+  {term:'ETF',def:'Exchange-Traded Fund. Like an index fund but trades on an exchange throughout the day like a stock.'},
+  {term:'Volatility',def:'How much a stock\'s price fluctuates. High volatility = bigger price swings = more risk and potential reward.'},
+  {term:'Diversification',def:'Spreading investments across many assets to reduce risk.'},
+  {term:'Liquidity',def:'How easily an asset can be bought or sold without affecting its price.'},
+  {term:'Short selling',def:'Borrowing shares to sell, hoping to buy them back cheaper later. Very high risk.'},
+  {term:'IPO',def:'Initial Public Offering. When a private company first sells shares to the public.'},
+  {term:'52-week high/low',def:'The highest and lowest price a stock has traded at over the past year.'},
+  {term:'Stop-loss',def:'An order to automatically sell a stock if it drops to a set price, limiting your loss.'},
+  {term:'EPS',def:'Earnings Per Share. Net profit divided by total shares outstanding.'},
+  {term:'Blue-chip stock',def:'Shares of large, stable, well-established companies like Apple or Coca-Cola.'},
+  {term:'Moving average',def:'Average price over a set period (e.g. 50-day). Used to identify trends.'},
+  {term:'Dollar-cost averaging',def:'Investing a fixed amount regularly regardless of price.'},
+  {term:'Portfolio',def:'Your full collection of investments — stocks, bonds, ETFs, cash, and other assets.'},
+  {term:'Broker',def:'A platform that executes buy/sell orders for you (e.g. Fidelity, Schwab, Robinhood).'},
+  {term:'Compound interest',def:'Earning returns on your returns. Over time causes wealth to grow exponentially.'},
+  {term:'Cost basis',def:'The original price you paid for an investment, used to calculate gains or losses.'},
+  {term:'Capital gains',def:'Profit from selling an investment for more than you paid. Short-term gains taxed higher than long-term.'},
+  {term:'Rebalancing',def:'Periodically buying/selling to restore your target asset allocation.'},
+  {term:'Beta',def:'Measures a stock\'s volatility relative to the market. Beta > 1 means more volatile than the market.'},
+  {term:'RSI',def:'Relative Strength Index. A technical indicator measuring if a stock is overbought (>70) or oversold (<30).'},
+  {term:'Fundamental analysis',def:'Evaluating a company\'s financial health and business to determine its true value.'},
+  {term:'Technical analysis',def:'Using price charts and patterns to predict future price movements.'},
+];
+
+function renderGloss(items) {
+  document.getElementById('gloss-list').innerHTML = `<div class="card">${items.map(i=>`<div class="gloss-item"><div class="gloss-term">${i.term}</div><div class="gloss-def">${i.def}</div></div>`).join('')}</div>`;
+}
+renderGloss(GLOSSARY);
+function filterGloss(q) {
+  const f = q.toLowerCase();
+  renderGloss(GLOSSARY.filter(i => i.term.toLowerCase().includes(f) || i.def.toLowerCase().includes(f)));
+}
+
+// ── ASK (knowledge base) ──
+const KB = [
+  {keys:['stock','share','equity','ownership'],ans:`A stock (or share) is a unit of ownership in a company. When you buy stock, you own a small piece of that business. If the company grows and becomes more valuable, your shares are worth more. If it struggles, they're worth less.\n\nCompanies sell stock to raise money for growth — it's how Amazon, Apple, and Tesla funded their expansion.`},
+  {keys:['bond','debt','fixed income','loan'],ans:`A bond is a loan you make to a company or government. They promise to pay you back with interest after a set period.\n\nKey differences:\n• Stocks = ownership (higher risk, higher potential return)\n• Bonds = loans (lower risk, fixed predictable return)\n\nMost portfolios hold both — stocks for growth, bonds for stability.`},
+  {keys:['dividend','income','yield','payout'],ans:`A dividend is a cash payment companies make to shareholders — usually every quarter. If you own 100 shares of a company paying $2/share annually, you receive $200/year just for holding the stock.\n\nDividend yield = annual dividend ÷ stock price. A 3% yield on a $100 stock means $3/year per share.\n\nNot all companies pay dividends — growth companies (like Amazon) often reinvest profits instead.`},
+  {keys:['dollar cost','dca','regular','monthly investing'],ans:`Dollar-cost averaging (DCA) means investing a fixed amount on a regular schedule — for example, $100 every month — regardless of what the market is doing.\n\nWhen prices are low, you buy more shares. When high, fewer. Over time this averages out your cost and removes the stress of trying to "time the market."\n\nIt's one of the most effective strategies for beginner investors.`},
+  {keys:['crash','correction','bear','drop','fall','decline'],ans:`A market crash is a sudden, severe drop in stock prices. A correction is a 10%+ decline from recent highs. A bear market is a 20%+ decline sustained over time.\n\nCauses include: economic recessions, interest rate rises, geopolitical events, or speculative bubbles bursting.\n\nHistorically, every crash has eventually recovered — the S&P 500 has never permanently declined. Long-term investors who hold through crashes typically recover their losses.`},
+  {keys:['100','start','begin','beginner','small amount','first investment'],ans:`Starting with $100 is totally valid — here's how to make the most of it:\n\n1. Open a brokerage account (Fidelity, Schwab, or Robinhood are free)\n2. Buy a single share of an index ETF like SPY or QQQ — this gives you exposure to 500+ companies instantly\n3. Set up automatic monthly contributions, even small ones\n4. Don't check the price every day — zoom out\n\nThe most important thing is starting. Time in the market beats timing the market.`},
+  {keys:['roth','ira','retirement','tax'],ans:`A Roth IRA is a US retirement account with a powerful tax benefit: you pay tax on money going IN, but withdrawals in retirement are completely tax-free — including all the growth.\n\n2024 contribution limit: $7,000/year ($8,000 if over 50)\n\nBest for: young people in lower tax brackets now who expect to be in a higher bracket later. A 25-year-old investing $6,000/year in a Roth IRA could have over $1 million tax-free by retirement.`},
+  {keys:['etf','index fund','passive','vanguard','spy','qqq'],ans:`An ETF (Exchange-Traded Fund) bundles hundreds of stocks into one investment that trades like a single stock.\n\nSPY tracks the S&P 500 (500 biggest US companies)\nQQQ tracks the NASDAQ-100 (tech-heavy)\nVTI tracks the entire US stock market\n\nWhy ETFs are great for beginners:\n• Instant diversification\n• Very low fees (often 0.03–0.20%/year)\n• No research needed — you own the whole market`},
+  {keys:['pe','price to earnings','valuation','expensive','cheap'],ans:`The P/E ratio (Price-to-Earnings) tells you how much you're paying for each dollar of a company's annual profit.\n\nP/E of 20 = you pay $20 for every $1 of yearly earnings\n\nAverage S&P 500 P/E: ~15–25\nBelow 15: potentially undervalued\nAbove 30: expensive (but may be justified if growth is fast)\n\nA high P/E isn't always bad — it often means investors expect strong future growth. Compare P/E within the same industry for context.`},
+  {keys:['diversif','spread','risk','eggs','basket'],ans:`Diversification means spreading your investments so one bad outcome doesn't wreck everything.\n\nWays to diversify:\n• Across companies (don't put everything in one stock)\n• Across sectors (tech, healthcare, energy, etc.)\n• Across asset types (stocks + bonds + real estate)\n• Across countries (US + international)\n\nIndex funds handle most of this automatically — buying SPY gives you 500 companies in one purchase.`},
+  {keys:['compound','grow','time','long term','patience'],ans:`Compound growth is the most powerful force in investing. You earn returns not just on your original money, but on all previous returns too.\n\nExample: $10,000 at 10%/year\n• After 10 years: $25,937\n• After 20 years: $67,275\n• After 30 years: $174,494\n\nThe money more than doubled in the last 10 years vs the first 10. This is why starting early matters more than investing a large amount later.`},
+];
+
+function findAnswer(q) {
+  const ql = q.toLowerCase();
+  for (const item of KB) {
+    if (item.keys.some(k => ql.includes(k))) return item.ans;
+  }
+  return `Great question! I don't have a specific answer for that in my knowledge base yet.\n\nTry searching for related terms like: stocks, bonds, dividends, ETF, P/E ratio, diversification, compound interest, Roth IRA, or dollar-cost averaging.\n\nFor deeper research, Investopedia.com is an excellent free resource.`;
+}
+
+function appendBubble(role, text) {
+  const hist = document.getElementById('chat-history');
+  const div = document.createElement('div');
+  div.className = role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai';
+  div.textContent = text;
+  hist.appendChild(div);
+  setTimeout(() => div.scrollIntoView({behavior:'smooth',block:'end'}), 50);
+  return div;
+}
+
+function doAsk() {
+  const input = document.getElementById('ask-q');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = '';
+  appendBubble('user', q);
+  setTimeout(() => appendBubble('ai', findAnswer(q)), 300);
+}
+
+function quickAsk(q) {
+  document.querySelectorAll('.nav-item')[4].click();
+  setTimeout(() => {
+    document.getElementById('ask-q').value = q;
+    doAsk();
+  }, 50);
+}
+
+// Unregister any old service workers and clear caches
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
+  });
+  caches.keys().then(keys => {
+    keys.forEach(key => caches.delete(key));
+  });
+}
+</script>
+</body>
+</html>
